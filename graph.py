@@ -6,7 +6,7 @@ from scipy.sparse import csr_matrix
 from scipy.sparse import dok_matrix
 
 class Graph(object):
-    def __init__(self, file_path, ng_sample_ratio):
+    def __init__(self, file_path, ng_sample_num):
         suffix = file_path.split('.')[-1]
         self.st = 0
         self.is_epoch_end = False
@@ -17,7 +17,7 @@ class Graph(object):
             self.E = int(firstLine[1])
             self.__is_epoch_end = False
             self.adj_matrix = dok_matrix((self.N, self.N), np.int_)
-            self.links = np.zeros([self.E + int(ng_sample_ratio*self.N) , 3], np.int_)
+            self.links = np.zeros([self.E + int(ng_sample_num) , 3], np.int_)
             count = 0
             for line in fin.readlines():
                 line = line.strip().split()
@@ -28,12 +28,12 @@ class Graph(object):
                 self.links[count][2] = 1
                 count += 1
             fin.close()
-            if (ng_sample_ratio > 0):
-                self.__negativeSample(int(ng_sample_ratio*self.N), count, self.adj_matrix.copy())
+            if (ng_sample_num > 0):
+                self.__negativeSample(int(ng_sample_num), count, self.adj_matrix.copy())
             self.order = np.arange(self.N)
             self.adj_matrix = self.adj_matrix.tocsr()
             print "getData done"
-            print "Vertexes : %d  Edges : %d ngSampleRatio: %f" % (self.N, self.E, ng_sample_ratio)
+            print "Vertexes : %d  Edges : %d ng_sample_num: %f" % (self.N, self.E, ng_sample_num)
         else:
             pass
             #TODO read a mat file or something like that.
@@ -44,10 +44,10 @@ class Graph(object):
         while (size < ngSample):
             xx = random.randint(0, self.N-1)
             yy = random.randint(0, self.N-1)
-            if (xx == yy or edges[xx][yy] != 0):
+            if (xx == yy or edges[xx, yy] != 0):
                 continue
-            edges[xx][yy] = -1
-            edges[yy][xx] = -1
+            edges[xx, yy] = -1
+            edges[yy, xx] = -1
             self.links[size + count] = [xx, yy, -1]
             size += 1
         print "negative Sampling done"
